@@ -231,6 +231,27 @@ describe('Resolver.getModulePaths() -> nodeModulesPaths()', () => {
     expect(dirs_actual).toEqual(expect.arrayContaining(dirs_expected));
   });
 
+  it('can resolve node modules relative to network paths on Windows platforms', () => {
+    jest.doMock('path', () => _path.win32);
+    const Resolver = require('../');
+    const path = require('path');
+
+    const cwd = '\\\\sub.example.lan\\path\\to\\project';
+    const resolver = new Resolver(moduleMap, {
+      basedir: cwd,
+    });
+    const dirs_expected = [
+      cwd + '\\node_modules',
+      path.dirname(cwd) + '\\node_modules',
+      cwd
+        .split('\\')
+        .slice(0, 5)
+        .join('\\') + '\\node_modules',
+    ];
+    const dirs_actual = resolver.getModulePaths(cwd);
+    expect(dirs_actual).toEqual(expect.arrayContaining(dirs_expected));
+  });
+
   it('can resolve node modules relative to absolute paths in "moduleDirectories" on Posix platforms', () => {
     jest.doMock('path', () => _path.posix);
     const path = require('path');
